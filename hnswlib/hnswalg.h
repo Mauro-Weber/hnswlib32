@@ -291,7 +291,6 @@ namespace hnswlib {
             top_candidates.emplace(dist, ep_id);
             candidate_set.emplace(-dist, ep_id);
             visited_array[ep_id] = visited_array_tag;
-            dist_t lower_bound = dist;
 
             // Create a priority queue to store candidates with distances
             std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, std::greater<>> neighborsQueue;
@@ -330,13 +329,6 @@ namespace hnswlib {
                     std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> topCandidatesCopy = top_candidates;
                     std::pair<dist_t, tableint> candidatePair = neighborsQueue.top();
                     neighborsQueue.pop();
-                
-                
-                // for (int j = 1; j <= size; j++) {
-                    int candidate_id = *(data + j);
-                    _mm_prefetch((char *) (visited_array + *(data + j + 1)), _MM_HINT_T0);
-                    _mm_prefetch(data_level0_memory_ + (*(data + j + 1)) * size_data_per_element_ + offsetData_,
-                                 _MM_HINT_T0);////////////
                     
                     if (!(visited_array[candidatePair.second] == visited_array_tag)) {
                         visited_array[candidatePair.second] = visited_array_tag;    
@@ -368,14 +360,10 @@ namespace hnswlib {
                                 topCandidatesCopy.pop();
                             }
                             if (infl_key)
-                                if ((!has_deletions || !isMarkedDeleted(candidatePair.second)) && ((!isIdAllowed) || (*isIdAllowed)(getExternalLabel(candidatePair.second))))
-                                    top_candidates.emplace(candidatePair.first, candidatePair.second);
+                                top_candidates.emplace(candidatePair.first, candidatePair.second);
 
                             while (top_candidates.size() > ef)
                                 top_candidates.pop();
-
-                            if (!top_candidates.empty())
-                                lowerBound = top_candidates.top().first;
                         }
                     }
                 }
