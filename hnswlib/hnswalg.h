@@ -279,7 +279,7 @@ namespace hnswlib {
         }
 
         std::priority_queue<std::pair<dist_t, tableint>, vector<pair<dist_t, tableint>>, CompareByFirst>
-        searchBaseLayerSTT(tableint ep_id, void *data_point, size_t ef) {
+        searchBaseLayerSTInflu(tableint ep_id, void *data_point, size_t ef) {
             VisitedList *vl = visited_list_pool_->getFreeVisitedList();
             vl_type *visited_array = vl->mass;
             vl_type visited_array_tag = vl->curV;
