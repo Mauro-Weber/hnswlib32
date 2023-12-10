@@ -306,7 +306,7 @@ namespace hnswlib {
                 candidate_set.pop();
                 tableint current_node_id = current_node_pair.second;
                 int *data = (int *) get_linklist0(current_node_id);
-                size_t size = getListCount((linklistsizeint*)data);
+                size_t size = 10;
 
                 for (size_t j = 1; j <= size; j++) {
                     int candidate_id = data[j];
@@ -316,14 +316,6 @@ namespace hnswlib {
                     // Add the candidate and distance to the priority queue
                     neighborsQueue.emplace(dist, candidate_id);
                 }
-
-                int *data = (int *) (data_level0_memory_ + current_node_id * size_data_per_element_ + offsetLevel0_);
-                int size = *data;
-                _mm_prefetch((char *) (visited_array + *(data + 1)), _MM_HINT_T0);
-                _mm_prefetch((char *) (visited_array + *(data + 1) + 64), _MM_HINT_T0);
-                _mm_prefetch(data_level0_memory_ + (*(data + 1)) * size_data_per_element_ + offsetData_, _MM_HINT_T0);
-                _mm_prefetch((char *) (data + 2), _MM_HINT_T0);
-
                 
                 while (!neighborsQueue.empty()) {
                     std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> topCandidatesCopy = top_candidates;
