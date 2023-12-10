@@ -293,16 +293,31 @@ namespace hnswlib {
             visited_array[ep_id] = visited_array_tag;
             dist_t lower_bound = dist;
 
+            // Create a priority queue to store candidates with distances
+            std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, std::greater<>> neighborsQueue;
+
             while (!candidate_set.empty()) {
-
                 std::pair<dist_t, tableint> current_node_pair = candidate_set.top();
+                
+                char *currObj2 = (getDataByInternalId(current_node_pair.second));
 
-                if ((-current_node_pair.first) > lower_bound) {
+                if (top_candidates.size() > ef) {
                     break;
                 }
                 candidate_set.pop();
-
                 tableint current_node_id = current_node_pair.second;
+                int *data = (int *) get_linklist0(current_node_id);
+                size_t size = getListCount((linklistsizeint*)data);
+
+                for (size_t j = 1; j <= size; j++) {
+                    int candidate_id = data[j];
+                    char *currObj1 = getDataByInternalId(candidate_id);
+                    dist_t dist = fstdistfunc_(data_point, currObj1, dist_func_param_);
+
+                    // Add the candidate and distance to the priority queue
+                    neighborsQueue.emplace(dist, candidate_id);
+                }
+
                 int *data = (int *) (data_level0_memory_ + current_node_id * size_data_per_element_ + offsetLevel0_);
                 int size = *data;
                 _mm_prefetch((char *) (visited_array + *(data + 1)), _MM_HINT_T0);
@@ -310,30 +325,57 @@ namespace hnswlib {
                 _mm_prefetch(data_level0_memory_ + (*(data + 1)) * size_data_per_element_ + offsetData_, _MM_HINT_T0);
                 _mm_prefetch((char *) (data + 2), _MM_HINT_T0);
 
-                for (int j = 1; j <= size; j++) {
+                
+                while (!neighborsQueue.empty()) {
+                    std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> topCandidatesCopy = top_candidates;
+                    std::pair<dist_t, tableint> candidatePair = neighborsQueue.top();
+                    neighborsQueue.pop();
+                
+                
+                // for (int j = 1; j <= size; j++) {
                     int candidate_id = *(data + j);
                     _mm_prefetch((char *) (visited_array + *(data + j + 1)), _MM_HINT_T0);
                     _mm_prefetch(data_level0_memory_ + (*(data + j + 1)) * size_data_per_element_ + offsetData_,
                                  _MM_HINT_T0);////////////
-                    if (!(visited_array[candidate_id] == visited_array_tag)) {
+                    
+                    if (!(visited_array[candidatePair.second] == visited_array_tag)) {
+                        visited_array[candidatePair.second] = visited_array_tag;    
 
-                        visited_array[candidate_id] = visited_array_tag;
-
-                        char *currObj1 = (getDataByInternalId(candidate_id));
-                        dist_t dist = fstdistfunc_(data_point, currObj1, dist_func_param_);
-
-                        if (top_candidates.top().first > dist || top_candidates.size() < ef) {
-                            candidate_set.emplace(-dist, candidate_id);
+                        if (top_candidates.size() < ef) {
+                            candidate_set.emplace(-candidatePair.first, candidatePair.second);
+                            // std::cout << "put_on_set: " << candidatePair.second << std::endl;
+    #ifdef USE_SSE
                             _mm_prefetch(data_level0_memory_ + candidate_set.top().second * size_data_per_element_ +
-                                         offsetLevel0_,///////////
-                                         _MM_HINT_T0);////////////////////////
+                                            offsetLevel0_,  ///////////
+                                        _MM_HINT_T0);  ////////////////////////
+    #endif
+                            bool infl_key = true;
+                            while (!topCandidatesCopy.empty()) {
+                                dist_t distanceToTopCandidate = topCandidatesCopy.top().first;
+                                char *currObj3 = (getDataByInternalId(topCandidatesCopy.top().second));
+                                char *currObj1 = (getDataByInternalId(candidatePair.second));
+                                dist_t dist_c = fstdistfunc_(currObj3, currObj1, dist_func_param_);
 
-                            top_candidates.emplace(dist, candidate_id);
+                                // Perform validation on each element in topCandidatesCopy
+                                if (dist_c > distanceToTopCandidate) {
+                                    std::cout  << dist_c << " YOU PASS " << distanceToTopCandidate << std::endl;
+                                } else {
+                                    // std::cout << dist_c <<" YOU DIDN'T PASS " << distanceToTopCandidate << std::endl;
+                                    infl_key = false;
+                                    break;
+                                }
 
-                            if (top_candidates.size() > ef) {
-                                top_candidates.pop();
+                                topCandidatesCopy.pop();
                             }
-                            lower_bound = top_candidates.top().first;
+                            if (infl_key)
+                                if ((!has_deletions || !isMarkedDeleted(candidatePair.second)) && ((!isIdAllowed) || (*isIdAllowed)(getExternalLabel(candidatePair.second))))
+                                    top_candidates.emplace(candidatePair.first, candidatePair.second);
+
+                            while (top_candidates.size() > ef)
+                                top_candidates.pop();
+
+                            if (!top_candidates.empty())
+                                lowerBound = top_candidates.top().first;
                         }
                     }
                 }
