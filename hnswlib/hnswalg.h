@@ -278,6 +278,71 @@ namespace hnswlib {
             return top_candidates;
         }
 
+        std::priority_queue<std::pair<dist_t, tableint>, vector<pair<dist_t, tableint>>, CompareByFirst>
+        searchBaseLayerSTT(tableint ep_id, void *data_point, size_t ef) {
+            VisitedList *vl = visited_list_pool_->getFreeVisitedList();
+            vl_type *visited_array = vl->mass;
+            vl_type visited_array_tag = vl->curV;
+
+            std::priority_queue<std::pair<dist_t, tableint>, vector<pair<dist_t, tableint>>, CompareByFirst> top_candidates;
+            std::priority_queue<std::pair<dist_t, tableint>, vector<pair<dist_t, tableint>>, CompareByFirst> candidate_set;
+            dist_t dist = fstdistfunc_(data_point, getDataByInternalId(ep_id), dist_func_param_);
+
+            top_candidates.emplace(dist, ep_id);
+            candidate_set.emplace(-dist, ep_id);
+            visited_array[ep_id] = visited_array_tag;
+            dist_t lower_bound = dist;
+
+            while (!candidate_set.empty()) {
+
+                std::pair<dist_t, tableint> current_node_pair = candidate_set.top();
+
+                if ((-current_node_pair.first) > lower_bound) {
+                    break;
+                }
+                candidate_set.pop();
+
+                tableint current_node_id = current_node_pair.second;
+                int *data = (int *) (data_level0_memory_ + current_node_id * size_data_per_element_ + offsetLevel0_);
+                int size = *data;
+                _mm_prefetch((char *) (visited_array + *(data + 1)), _MM_HINT_T0);
+                _mm_prefetch((char *) (visited_array + *(data + 1) + 64), _MM_HINT_T0);
+                _mm_prefetch(data_level0_memory_ + (*(data + 1)) * size_data_per_element_ + offsetData_, _MM_HINT_T0);
+                _mm_prefetch((char *) (data + 2), _MM_HINT_T0);
+
+                for (int j = 1; j <= size; j++) {
+                    int candidate_id = *(data + j);
+                    _mm_prefetch((char *) (visited_array + *(data + j + 1)), _MM_HINT_T0);
+                    _mm_prefetch(data_level0_memory_ + (*(data + j + 1)) * size_data_per_element_ + offsetData_,
+                                 _MM_HINT_T0);////////////
+                    if (!(visited_array[candidate_id] == visited_array_tag)) {
+
+                        visited_array[candidate_id] = visited_array_tag;
+
+                        char *currObj1 = (getDataByInternalId(candidate_id));
+                        dist_t dist = fstdistfunc_(data_point, currObj1, dist_func_param_);
+
+                        if (top_candidates.top().first > dist || top_candidates.size() < ef) {
+                            candidate_set.emplace(-dist, candidate_id);
+                            _mm_prefetch(data_level0_memory_ + candidate_set.top().second * size_data_per_element_ +
+                                         offsetLevel0_,///////////
+                                         _MM_HINT_T0);////////////////////////
+
+                            top_candidates.emplace(dist, candidate_id);
+
+                            if (top_candidates.size() > ef) {
+                                top_candidates.pop();
+                            }
+                            lower_bound = top_candidates.top().first;
+                        }
+                    }
+                }
+            }
+
+            visited_list_pool_->releaseVisitedList(vl);
+            return top_candidates;
+        }
+
         void getNeighborsByHeuristic2(
                 std::priority_queue<std::pair<dist_t, tableint>, vector<pair<dist_t, tableint>>, CompareByFirst> &top_candidates,
                 const int M) {
