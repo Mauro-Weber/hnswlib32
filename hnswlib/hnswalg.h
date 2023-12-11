@@ -306,7 +306,7 @@ namespace hnswlib {
                 candidate_set.pop();
                 tableint current_node_id = current_node_pair.second;
                 int *data = (int *) get_linklist0(current_node_id);
-                size_t size = 10;
+                size_t size = getListCount((linklistsizeint*)data);
 
                 for (size_t j = 1; j <= size; j++) {
                     int candidate_id = data[j];
@@ -665,10 +665,16 @@ namespace hnswlib {
             return;
         }
 
+        
+
         void addPoint(void *data_point, labeltype label)
         {
             addPoint(data_point, label,-1);
         };
+
+        unsigned short int getListCount(linklistsizeint * ptr) const {
+            return *((unsigned short int *)ptr);
+        }
 
         tableint addPoint(void *data_point, labeltype label, int level) {
 
