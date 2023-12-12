@@ -284,6 +284,7 @@ namespace hnswlib {
             vl_type *visited_array = vl->mass;
             vl_type visited_array_tag = vl->curV;
 
+            std::cout << "ENTREI NO INFLU" << std::endl;
             std::priority_queue<std::pair<dist_t, tableint>, vector<pair<dist_t, tableint>>, CompareByFirst> top_candidates;
             std::priority_queue<std::pair<dist_t, tableint>, vector<pair<dist_t, tableint>>, CompareByFirst> candidate_set;
             dist_t dist = fstdistfunc_(data_point, getDataByInternalId(ep_id), dist_func_param_);
@@ -814,6 +815,7 @@ namespace hnswlib {
             
             std::priority_queue<std::pair<dist_t, tableint>, vector<pair<dist_t, tableint>>, CompareByFirst> top_candidates_final = searchBaseLayerSTInflu(
                     k1_rez.second, query_data, k);
+            std::cout << "SAI DO INFLU" << std::endl;
             std::priority_queue<std::pair<dist_t, labeltype >> results_final;
             while (top_candidates_final.size() > k) {
                 top_candidates_final.pop();
