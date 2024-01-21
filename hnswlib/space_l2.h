@@ -33,7 +33,7 @@ namespace hnswlib {
             float t = ((float *) pVect1)[i] - ((float *) pVect2)[i];
             res += t * t;
         }
-        return sqrt(res);
+        return sqrt(res); 
 
     };
 
