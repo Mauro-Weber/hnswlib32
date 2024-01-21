@@ -26,41 +26,15 @@ namespace hnswlib {
 
     static float
     L2Sqr(const void *pVect1, const void *pVect2, const void *qty_ptr) {
-        // Retorna a distância angular entre dois vetores.
-    
-        // Obtém a quantidade de elementos nos vetores (dimensão).
+        //return *((float *)pVect2);
         size_t qty = *((size_t *) qty_ptr);
-        
-        // Inicializa o numerador e denominador para o cosseno do ângulo.
-        float dotProduct = 0;
-        float magnitude1 = 0;
-        float magnitude2 = 0;
-    
-        // Itera sobre os elementos dos vetores.
+        float res = 0;
         for (int i = 0; i < qty; i++) {
-            // Calcula o produto escalar entre os vetores.
-            dotProduct += ((float *) pVect1)[i] * ((float *) pVect2)[i];
-    
-            // Calcula as magnitudes dos vetores.
-            magnitude1 += pow(((float *) pVect1)[i], 2);
-            magnitude2 += pow(((float *) pVect2)[i], 2);
+            float t = ((float *) pVect1)[i] - ((float *) pVect2)[i];
+            res += t * t;
         }
-    
-        // Calcula as magnitudes finais.
-        magnitude1 = sqrt(magnitude1);
-        magnitude2 = sqrt(magnitude2);
-    
-        // Calcula o cosseno do ângulo entre os vetores.
-        float cosineSimilarity = dotProduct / (magnitude1 * magnitude2);
-    
-        // Garante que o valor esteja no intervalo [-1, 1].
-        cosineSimilarity = fminf(1.0f, fmaxf(-1.0f, cosineSimilarity));
-    
-        // Calcula a distância angular em radianos.
-        float angularDistance = acos(cosineSimilarity);
-    
-        // Retorna a distância angular em radianos.
-        return angularDistance;
+        return sqrt(res);
+
     };
 
 
