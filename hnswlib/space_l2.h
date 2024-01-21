@@ -6,7 +6,7 @@
 #include <cmath>
 
 #define  __builtin_popcount(t) __popcnt(t)
-#else
+#else 
 
 #include <x86intrin.h>
 
