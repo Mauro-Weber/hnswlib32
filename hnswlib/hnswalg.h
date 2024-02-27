@@ -288,7 +288,7 @@ namespace hnswlib {
             std::priority_queue<std::pair<dist_t, tableint>, vector<pair<dist_t, tableint>>, CompareByFirst> candidate_set;
             dist_t dist = fstdistfunc_(data_point, getDataByInternalId(ep_id), dist_func_param_);
 
-            top_candidates.emplace(dist, ep_id);
+            // top_candidates.emplace(dist, ep_id);
             candidate_set.emplace(-dist, ep_id);
             visited_array[ep_id] = visited_array_tag;
 
@@ -298,7 +298,6 @@ namespace hnswlib {
             while (!candidate_set.empty()) {
                 std::pair<dist_t, tableint> current_node_pair = candidate_set.top();
                 top_candidates.emplace(current_node_pair.first, current_node_pair.second);
-                
                 char *currObj2 = (getDataByInternalId(current_node_pair.second));
 
                 if (top_candidates.size() > ef) {
