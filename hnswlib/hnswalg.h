@@ -335,7 +335,6 @@ namespace hnswlib {
                         visited_array[candidatePair.second] = visited_array_tag;    
                    
                         if (top_candidates.size() < ef) {
-                            candidate_set.emplace(-candidatePair.first, candidatePair.second);
                             // std::cout << "put_on_set: " << candidatePair.second << std::endl;
     #ifdef USE_SSE
                             _mm_prefetch(data_level0_memory_ + candidate_set.top().second * size_data_per_element_ +
@@ -358,7 +357,8 @@ namespace hnswlib {
                                 topCandidatesCopy.pop();
                             }
                             if (infl_key)
-                                top_candidates.emplace(candidatePair.first, candidatePair.second);
+                                candidate_set.emplace(-candidatePair.first, candidatePair.second);
+                            
 
                             while (top_candidates.size() > ef)
                                 top_candidates.pop();
