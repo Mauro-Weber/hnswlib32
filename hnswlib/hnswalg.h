@@ -297,7 +297,7 @@ namespace hnswlib {
 
             while (!candidate_set.empty()) {
                 std::pair<dist_t, tableint> current_node_pair = candidate_set.top();
-                top_candidates.emplace(current_node_pair.first, current_node_pair.second);
+                top_candidates.emplace(-current_node_pair.first, current_node_pair.second);
                 char *currObj2 = (getDataByInternalId(current_node_pair.second));
 
                 if (top_candidates.size() > ef) {
