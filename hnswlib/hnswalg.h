@@ -358,15 +358,13 @@ namespace hnswlib {
                             }
                             if (infl_key)
                                 candidate_set.emplace(-candidatePair.first, candidatePair.second);
-                            
-
-                            while (top_candidates.size() > ef)
-                                top_candidates.pop();
                         }
                     }
                 }
             }
-
+            while (top_candidates.size() > ef)
+                top_candidates.pop();
+            
             visited_list_pool_->releaseVisitedList(vl);
             return top_candidates;
         }
